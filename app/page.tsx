@@ -8,7 +8,18 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Clock, FileText, Users, Target, Sparkles, Play } from "lucide-react"
+import {
+  Clock,
+  FileText,
+  Users,
+  Target,
+  Sparkles,
+  Play,
+  ArrowLeft,
+  Download,
+  Share2,
+  MessageSquare,
+} from "lucide-react"
 
 interface DocumentData {
   type: string
@@ -39,9 +50,27 @@ export default function WritingAssistant() {
   const [isGenerating, setIsGenerating] = useState(false)
 
   const documentTypes = [
-    { id: "presentation", name: "발표 대본", icon: "🎤", description: "팀 발표, 제품 소개, 결과 보고용" },
-    { id: "report", name: "공적 보고서", icon: "📊", description: "월간 리포트, 성과 분석, 제안서" },
-    { id: "retrospective", name: "스프린트 회고", icon: "🔄", description: "프로젝트 회고, 팀 피드백, 개선안" },
+    {
+      id: "presentation",
+      name: "발표 대본",
+      icon: "🎤",
+      description: "팀 발표, 제품 소개, 결과 보고용",
+      gradient: "from-purple-500 to-pink-500",
+    },
+    {
+      id: "report",
+      name: "공적 보고서",
+      icon: "📊",
+      description: "월간 리포트, 성과 분석, 제안서",
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      id: "retrospective",
+      name: "스프린트 회고",
+      icon: "🔄",
+      description: "프로젝트 회고, 팀 피드백, 개선안",
+      gradient: "from-emerald-500 to-teal-500",
+    },
   ]
 
   const handleTypeSelect = (type: string) => {
@@ -153,33 +182,72 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
 
   if (step === "select") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">글쓰기 어시스턴트 ✨</h1>
-            <p className="text-gray-600">1분 만에 구조화된 초안을 받아보세요</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+
+        <div className="relative max-w-6xl mx-auto px-6 py-16">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-pink-100 px-4 py-2 rounded-full text-sm font-medium text-purple-700 mb-6">
+              <Sparkles className="w-4 h-4" />
+              AI 글쓰기 어시스턴트
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-4">
+              1분 만에 완성하는
+              <br />
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                전문적인 문서
+              </span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              목적과 키워드만 입력하면 구조화된 초안을 즉시 생성해드립니다
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {documentTypes.map((type) => (
+          {/* Document Type Cards */}
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {documentTypes.map((type, index) => (
               <Card
                 key={type.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-300"
+                className="group cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white/80 backdrop-blur-sm overflow-hidden"
                 onClick={() => handleTypeSelect(type.id)}
               >
-                <CardHeader className="text-center">
-                  <div className="text-4xl mb-2">{type.icon}</div>
-                  <CardTitle className="text-lg">{type.name}</CardTitle>
-                  <CardDescription>{type.description}</CardDescription>
+                <div className={`h-2 bg-gradient-to-r ${type.gradient}`} />
+                <CardHeader className="text-center pb-4">
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                    {type.icon}
+                  </div>
+                  <CardTitle className="text-xl font-semibold text-gray-900 mb-2">{type.name}</CardTitle>
+                  <CardDescription className="text-gray-600 leading-relaxed">{type.description}</CardDescription>
                 </CardHeader>
+                <CardContent className="pt-0">
+                  <div
+                    className={`w-full h-12 bg-gradient-to-r ${type.gradient} rounded-lg flex items-center justify-center text-white font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                  >
+                    시작하기 →
+                  </div>
+                </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="mt-12 text-center">
-            <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
-              <Clock className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-gray-600">평균 생성 시간: 10초</span>
+          {/* Features */}
+          <div className="text-center">
+            <div className="inline-flex items-center gap-6 bg-white/60 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-lg border border-gray-100">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Clock className="w-5 h-5 text-purple-500" />
+                <span className="font-medium">평균 10초 생성</span>
+              </div>
+              <div className="w-px h-6 bg-gray-200" />
+              <div className="flex items-center gap-2 text-gray-700">
+                <Sparkles className="w-5 h-5 text-pink-500" />
+                <span className="font-medium">AI 기반 구조화</span>
+              </div>
+              <div className="w-px h-6 bg-gray-200" />
+              <div className="flex items-center gap-2 text-gray-700">
+                <FileText className="w-5 h-5 text-blue-500" />
+                <span className="font-medium">즉시 편집 가능</span>
+              </div>
             </div>
           </div>
         </div>
@@ -191,28 +259,44 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
     const selectedType = documentTypes.find((t) => t.id === documentData.type)
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-6">
-            <Button variant="ghost" onClick={() => setStep("select")}>
-              ← 뒤로가기
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+
+        <div className="relative max-w-3xl mx-auto px-6 py-12">
+          <div className="mb-8">
+            <Button
+              variant="ghost"
+              onClick={() => setStep("select")}
+              className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full px-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              뒤로가기
             </Button>
           </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{selectedType?.icon}</span>
+          <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-sm overflow-hidden">
+            <div className={`h-1 bg-gradient-to-r ${selectedType?.gradient}`} />
+
+            <CardHeader className="pb-8">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${selectedType?.gradient} flex items-center justify-center text-2xl shadow-lg`}
+                >
+                  {selectedType?.icon}
+                </div>
                 <div>
-                  <CardTitle>{selectedType?.name} 생성</CardTitle>
-                  <CardDescription>간단한 정보만 입력하면 구조화된 초안을 만들어드려요</CardDescription>
+                  <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{selectedType?.name} 생성</CardTitle>
+                  <CardDescription className="text-gray-600 text-lg">
+                    간단한 정보만 입력하면 구조화된 초안을 만들어드려요
+                  </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="purpose" className="flex items-center gap-2">
-                  <Target className="w-4 h-4" />
+
+            <CardContent className="space-y-8 pb-8">
+              <div className="space-y-3">
+                <Label htmlFor="purpose" className="flex items-center gap-2 text-base font-medium text-gray-700">
+                  <Target className="w-5 h-5 text-purple-500" />
                   목적 (무엇에 대한 내용인가요?)
                 </Label>
                 <Input
@@ -220,12 +304,13 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
                   placeholder="예: Q4 마케팅 성과 분석, 신제품 런칭 전략"
                   value={documentData.purpose}
                   onChange={(e) => setDocumentData({ ...documentData, purpose: e.target.value })}
+                  className="h-12 text-base border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="audience" className="flex items-center gap-2">
-                  <Users className="w-4 h-4" />
+              <div className="space-y-3">
+                <Label htmlFor="audience" className="flex items-center gap-2 text-base font-medium text-gray-700">
+                  <Users className="w-5 h-5 text-blue-500" />
                   청중 (누구에게 전달하나요?)
                 </Label>
                 <Input
@@ -233,12 +318,13 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
                   placeholder="예: 팀 리더들, 전체 직원, 경영진"
                   value={documentData.audience}
                   onChange={(e) => setDocumentData({ ...documentData, audience: e.target.value })}
+                  className="h-12 text-base border-gray-200 focus:border-blue-300 focus:ring-blue-200 rounded-xl"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="keywords" className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
+              <div className="space-y-3">
+                <Label htmlFor="keywords" className="flex items-center gap-2 text-base font-medium text-gray-700">
+                  <FileText className="w-5 h-5 text-emerald-500" />
                   핵심 키워드 (쉼표로 구분)
                 </Label>
                 <Textarea
@@ -246,15 +332,16 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
                   placeholder="예: 매출 증가, 사용자 경험 개선, A/B 테스트, 전환율"
                   value={documentData.keywords}
                   onChange={(e) => setDocumentData({ ...documentData, keywords: e.target.value })}
-                  rows={3}
+                  rows={4}
+                  className="text-base border-gray-200 focus:border-emerald-300 focus:ring-emerald-200 rounded-xl resize-none"
                 />
               </div>
 
               {documentData.type === "presentation" && (
-                <div className="space-y-2">
-                  <Label htmlFor="duration">예상 발표 시간</Label>
+                <div className="space-y-3">
+                  <Label className="text-base font-medium text-gray-700">예상 발표 시간</Label>
                   <Select onValueChange={(value) => setDocumentData({ ...documentData, duration: value })}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 text-base border-gray-200 focus:border-purple-300 rounded-xl">
                       <SelectValue placeholder="시간을 선택하세요" />
                     </SelectTrigger>
                     <SelectContent>
@@ -270,17 +357,16 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
               <Button
                 onClick={generateContent}
                 disabled={!documentData.purpose || !documentData.audience || !documentData.keywords || isGenerating}
-                className="w-full"
-                size="lg"
+                className={`w-full h-14 text-lg font-semibold rounded-xl bg-gradient-to-r ${selectedType?.gradient} hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5`}
               >
                 {isGenerating ? (
                   <>
-                    <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                    <Sparkles className="w-5 h-5 mr-3 animate-spin" />
                     초안 생성 중...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-5 h-5 mr-3" />
                     초안 생성하기
                   </>
                 )}
@@ -293,43 +379,67 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
-          <Button variant="ghost" onClick={resetForm}>
-            ← 새 문서 만들기
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+
+      <div className="relative max-w-7xl mx-auto px-6 py-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <Button
+            variant="ghost"
+            onClick={resetForm}
+            className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full px-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />새 문서 만들기
           </Button>
-          <div className="flex gap-2">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
+
+          <div className="flex gap-3">
+            <Badge
+              variant="secondary"
+              className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full"
+            >
+              <Clock className="w-4 h-4 text-purple-500" />
               {generatedContent?.estimatedTime}
             </Badge>
-            <Badge variant="secondary">{generatedContent?.wordCount}자</Badge>
+            <Badge
+              variant="secondary"
+              className="px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-full"
+            >
+              {generatedContent?.wordCount}자
+            </Badge>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-6">
-          {/* 구조 사이드바 */}
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">문서 구조</CardTitle>
+            <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm sticky top-8">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-purple-500" />
+                  문서 구조
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {generatedContent?.structure.map((section, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium">
-                        {index + 1}
-                      </div>
-                      <span className="text-gray-700">{section}</span>
+              <CardContent className="space-y-3">
+                {generatedContent?.structure.map((section, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center text-sm font-semibold shadow-sm">
+                      {index + 1}
                     </div>
-                  ))}
-                </div>
+                    <span className="text-gray-700 font-medium">{section}</span>
+                  </div>
+                ))}
 
                 {documentData.type === "presentation" && (
-                  <div className="mt-4 pt-4 border-t">
-                    <Button size="sm" variant="outline" className="w-full bg-transparent">
+                  <div className="mt-6 pt-6 border-t border-gray-100">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:bg-gradient-to-r hover:from-purple-100 hover:to-pink-100 rounded-lg"
+                    >
                       <Play className="w-4 h-4 mr-2" />
                       발표 연습 모드
                     </Button>
@@ -339,27 +449,40 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
             </Card>
           </div>
 
-          {/* 메인 콘텐츠 */}
+          {/* Main Content */}
           <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>{generatedContent?.title}</CardTitle>
-                <CardDescription>생성된 초안입니다. 필요한 부분을 수정하여 완성하세요.</CardDescription>
+            <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-sm">
+              <CardHeader className="pb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{generatedContent?.title}</CardTitle>
+                    <CardDescription className="text-gray-600 text-lg">
+                      생성된 초안입니다. 필요한 부분을 수정하여 완성하세요.
+                    </CardDescription>
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent>
+
+              <CardContent className="space-y-6">
                 <Textarea
                   value={generatedContent?.content}
                   onChange={(e) => setGeneratedContent((prev) => (prev ? { ...prev, content: e.target.value } : null))}
-                  className="min-h-[500px] font-mono text-sm"
+                  className="min-h-[600px] text-base leading-relaxed border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-xl resize-none font-mono"
                 />
 
-                <div className="mt-4 flex gap-2">
-                  <Button>
-                    <FileText className="w-4 h-4 mr-2" />
+                <div className="flex gap-3 pt-4 border-t border-gray-100">
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Download className="w-4 h-4 mr-2" />
                     다운로드
                   </Button>
-                  <Button variant="outline">공유하기</Button>
-                  <Button variant="outline">피드백 요청</Button>
+                  <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-lg bg-transparent">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    공유하기
+                  </Button>
+                  <Button variant="outline" className="border-gray-200 hover:bg-gray-50 rounded-lg bg-transparent">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    피드백 요청
+                  </Button>
                 </div>
               </CardContent>
             </Card>
