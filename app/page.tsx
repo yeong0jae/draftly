@@ -71,6 +71,13 @@ export default function WritingAssistant() {
       description: "프로젝트 회고, 팀 피드백, 개선안",
       gradient: "from-emerald-500 to-teal-500",
     },
+    {
+      id: "greeting",
+      name: "안부 인사",
+      icon: "🙏",
+      description: "상급자, 고객, 파트너에게 보내는 정중한 인사",
+      gradient: "from-amber-500 to-orange-500",
+    },
   ]
 
   const handleTypeSelect = (type: string) => {
@@ -166,6 +173,34 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
         estimatedTime: "2분 30초 읽기",
         wordCount: 320,
       },
+      greeting: {
+        title: `${documentData.audience}님께 드리는 인사`,
+        structure: ["정중한 인사", "안부 문의", "근황 공유", "감사 인사", "마무리 인사"],
+        content: `# ${documentData.audience}님께 드리는 인사
+
+## 정중한 인사
+안녕하세요, ${documentData.audience}님.
+항상 건강하시고 하시는 일마다 번창하시길 기원합니다.
+
+## 안부 문의
+연말이 다가오는 가운데, ${documentData.audience}님께서는 어떻게 지내고 계신지 궁금하여 안부 인사를 드립니다.
+
+## 근황 공유
+저희는 ${documentData.keywords}와 관련하여 ${documentData.purpose} 업무를 진행하고 있습니다.
+덕분에 많은 것을 배우고 성장할 수 있었습니다.
+
+## 감사 인사
+평소 ${documentData.audience}님께서 보여주신 관심과 격려에 깊이 감사드리며,
+앞으로도 변함없는 지도편달 부탁드립니다.
+
+## 마무리 인사
+다시 한번 ${documentData.audience}님의 건강과 행복을 기원하며,
+가까운 시일 내에 뵐 수 있기를 바랍니다.
+
+감사합니다.`,
+        estimatedTime: "1분 30초 읽기",
+        wordCount: 280,
+      },
     }
 
     const template = templates[documentData.type as keyof typeof templates]
@@ -205,7 +240,7 @@ ${documentData.keywords}와 관련하여 잘 진행된 부분:
           </div>
 
           {/* Document Type Cards */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {documentTypes.map((type, index) => (
               <Card
                 key={type.id}
