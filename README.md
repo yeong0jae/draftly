@@ -1,30 +1,63 @@
-# Korean greeting
+[서비스 링크](https://v0-korean-greeting-silk.vercel.app/)
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+## 페르소나 1 — 바쁜 직장인 마케터 **김소연 (32세)**
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/yeong0jaes-projects/v0-korean-greeting)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/fhtTKh9INRv)
+| 구분 | 내용 |
+| --- | --- |
+| **직업** | IT 스타트업 마케팅 팀 리드 (경력 6년) |
+| **라이프스타일** | 매일 출퇴근 · 촘촘한 데드라인 · 잦은 스탠드업 & 리뷰 미팅 |
 
-## Overview
+### 🎯 목표
+- **3 분 이내** 발표 자료·보고서 **초안 확보**  
+- 브랜드 **톤·메시지 일관성** 유지로 피드백 회차 최소화
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+### 💡 니즈
+- 문서 유형·키워드만 넣으면 **70 % 완성 초안** 즉시 생성  
+- 팀 가이드(톤, 용어, 시그니처 문구) **자동 반영**
 
-## Deployment
+### 😣 페인 포인트
+- **빈 페이지 공포**로 작성 시작이 늦어짐  
+- 반복 피드백으로 **수정 시간** 과다
 
-Your project is live at:
+---
 
-**[https://vercel.com/yeong0jaes-projects/v0-korean-greeting](https://vercel.com/yeong0jaes-projects/v0-korean-greeting)**
+### 사용자 시나리오 & 스토리
 
-## Build your app
+| 구분 | 내용 |
+| --- | --- |
+| **상황** | 오전 10시 팀 미팅 전, **주간 성과 보고서** 초안을 제출해야 함 |
+| **사용자 시나리오** | 1) 데스크톱에서 템플릿 서비스 접속<br>2) `주간 보고서` 템플릿 선택<br>3) KPI·하이라이트 입력 후 **“초안 생성”** 클릭<br>4) **3 초 내** 개요·본문 완성 → 미팅 직전 간단 보완 후 제출 |
+| **사용자 스토리** | “마케터로서, 저는 **짧은 시간에 브랜드 톤**이 맞는 보고서 초안을 받고 싶어요.<br>그래야 전략에 더 집중할 수 있습니다.” |
+| **인수 조건** | **Given** : 사용자가 템플릿 서비스에 접속했을 때<br>**When** : 템플릿 유형 선택 후 핵심 키워드를 입력했을 때<br>**Then** : **3 초 이내** 브랜드 톤이 적용된 보고서 초안을 제공한다 |
 
-Continue building your app on:
+---
 
-**[https://v0.dev/chat/projects/fhtTKh9INRv](https://v0.dev/chat/projects/fhtTKh9INRv)**
+## 페르소나 2 — 대학생 **이민준 (21세)**
 
-## How It Works
+| 구분 | 내용 |
+| --- | --- |
+| **직업 / 상황** | 경영학과 3학년 · 팀 프로젝트·발표 과제 다수 |
+| **라이프스타일** | 수업·동아리 병행, 밤샘 과제 마감 빈번 |
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+### 🎯 목표
+- 과제 **형식·분량** 손쉽게 충족  
+- 발표 대본을 **빠르게 암기**하고 시간 안에 맞춰 연습
+
+### 💡 니즈
+- 과제 유형별 **표준 구조 템플릿** 자동 적용  
+- 입력 분량 기반 **예상 발표 시간** 즉시 계산
+
+### 😣 페인 포인트
+- 과제마다 요구되는 **글 구조 파악**이 어려움
+- 발표 **길이·톤** 조절 미숙 → 감점 위험
+
+---
+
+### 사용자 시나리오 & 스토리
+
+| 구분 | 내용 |
+| --- | --- |
+| **상황** | 내일 오전 **팀 프로젝트 발표(5 분)**, 아직 대본 없음 |
+| **사용자 시나리오** | 1) 노트북에서 템플릿 서비스 접속<br>2) `팀 프로젝트 발표` 템플릿 선택, 주제 키워드 입력<br>3) **3 초 내** 슬라이드별 스크립트·개요 생성<br>4) 예상 발표 시간 **4분 50초** 확인 → 바로 연습 모드로 리허설 |
+| **사용자 스토리** | “대학생으로서, 저는 발표 과제마다 **표준 형식**을 빠르게 적용해 **시간 안에** 발표를 끝내고 좋은 점수를 받고 싶어요.” |
+| **인수 조건** | **Given** : 사용자가 템플릿 서비스에 접속했을 때<br>**When** : 발표 유형 선택 후 주제 키워드를 입력했을 때<br>**Then** : **3 초 이내** 분량·예상 시간 포함된 발표 대본을 제공한다 |
