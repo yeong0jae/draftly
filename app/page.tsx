@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -30,7 +32,6 @@ import {
   MessageSquare,
   Save,
   Palette,
-  BookOpen,
   Plus,
   Trash2,
   Edit,
@@ -38,6 +39,12 @@ import {
   RotateCcw,
   Volume2,
   VolumeX,
+  Upload,
+  File,
+  ImageIcon,
+  FileSpreadsheet,
+  FileImage,
+  X,
 } from "lucide-react"
 
 interface DocumentData {
@@ -48,6 +55,25 @@ interface DocumentData {
   duration?: string
   tonePreset?: string
   customTone?: string
+  referenceFiles?: ReferenceFile[]
+}
+
+interface ReferenceFile {
+  id: string
+  name: string
+  type: string
+  size: number
+  content?: string
+  analysis?: FileAnalysis
+  url?: string
+}
+
+interface FileAnalysis {
+  type: "text" | "image" | "data" | "chart"
+  summary: string
+  keyPoints: string[]
+  insights?: string[]
+  data?: any
 }
 
 interface GeneratedContent {
@@ -56,6 +82,7 @@ interface GeneratedContent {
   content: string
   estimatedTime: string
   wordCount: number
+  referencedFiles?: string[]
 }
 
 interface TonePreset {
@@ -88,9 +115,11 @@ export default function WritingAssistant() {
     duration: "",
     tonePreset: "",
     customTone: "",
+    referenceFiles: [],
   })
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [savedDocuments, setSavedDocuments] = useState<any[]>([])
   const [presentationState, setPresentationState] = useState<PresentationState>({
     isPlaying: false,
@@ -123,6 +152,7 @@ export default function WritingAssistant() {
     },
   ])
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const documentTypes = [
@@ -177,43 +207,177 @@ export default function WritingAssistant() {
     setStep("input")
   }
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files) return
+
+    setIsAnalyzing(true)
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const fileId = Date.now().toString() + i
+
+      // 파일 기본 정보
+      const referenceFile: ReferenceFile = {
+        id: fileId,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      }
+
+      // 파일 타입별 분석
+      if (file.type.startsWith("image/")) {
+        referenceFile.analysis = await analyzeImage(file)
+        referenceFile.url = URL.createObjectURL(file)
+      } else if (file.type === "application/pdf") {
+        referenceFile.analysis = await analyzePDF(file)
+      } else if (file.type.includes("spreadsheet") || file.name.endsWith(".xlsx") || file.name.endsWith(".csv")) {
+        referenceFile.analysis = await analyzeSpreadsheet(file)
+      } else if (file.type.startsWith("text/") || file.name.endsWith(".txt") || file.name.endsWith(".md")) {
+        referenceFile.content = await file.text()
+        referenceFile.analysis = await analyzeText(referenceFile.content)
+      }
+
+      setDocumentData((prev) => ({
+        ...prev,
+        referenceFiles: [...(prev.referenceFiles || []), referenceFile],
+      }))
+    }
+
+    setIsAnalyzing(false)
+  }
+
+  const analyzeImage = async (file: File): Promise<FileAnalysis> => {
+    // 실제 구현에서는 이미지 분석 AI API 호출
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
+    // 파일명으로 간단한 분석 시뮬레이션
+    const fileName = file.name.toLowerCase()
+    let analysis: FileAnalysis
+
+    if (fileName.includes("chart") || fileName.includes("graph")) {
+      analysis = {
+        type: "chart",
+        summary: "차트/그래프 이미지로 데이터 시각화 자료입니다.",
+        keyPoints: ["매출 증가 추세", "Q4 성과 향상", "목표 달성률 85%"],
+        insights: ["전년 대비 20% 성장", "모바일 채널 성과 우수"],
+      }
+    } else if (fileName.includes("screenshot") || fileName.includes("ui")) {
+      analysis = {
+        type: "image",
+        summary: "UI/UX 스크린샷 또는 제품 화면입니다.",
+        keyPoints: ["사용자 인터페이스", "기능 개선사항", "디자인 변경점"],
+        insights: ["사용성 개선", "시각적 일관성 확보"],
+      }
+    } else {
+      analysis = {
+        type: "image",
+        summary: "참고용 이미지 자료입니다.",
+        keyPoints: ["시각적 참고자료", "컨텍스트 제공"],
+        insights: ["문서 이해도 향상에 도움"],
+      }
+    }
+
+    return analysis
+  }
+
+  const analyzePDF = async (file: File): Promise<FileAnalysis> => {
+    // 실제 구현에서는 PDF 텍스트 추출 및 분석
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+
+    return {
+      type: "text",
+      summary: "PDF 문서에서 추출한 주요 내용입니다.",
+      keyPoints: ["시장 분석 보고서", "경쟁사 현황", "향후 전략 방향", "예산 계획"],
+      insights: ["시장 성장률 12% 예상", "디지털 전환 가속화", "고객 만족도 개선 필요"],
+    }
+  }
+
+  const analyzeSpreadsheet = async (file: File): Promise<FileAnalysis> => {
+    // 실제 구현에서는 스프레드시트 데이터 분석
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+
+    return {
+      type: "data",
+      summary: "스프레드시트 데이터 분석 결과입니다.",
+      keyPoints: ["월별 매출 데이터", "고객 세그먼트 분석", "성과 지표 추이"],
+      insights: ["3분기 매출 15% 증가", "신규 고객 획득률 상승", "리텐션율 개선 필요"],
+      data: {
+        totalRevenue: "₩1,250,000,000",
+        growthRate: "15.3%",
+        customerCount: 1847,
+      },
+    }
+  }
+
+  const analyzeText = async (content: string): Promise<FileAnalysis> => {
+    // 실제 구현에서는 텍스트 분석 AI API 호출
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
+    const sentences = content.split(".").filter((s) => s.trim().length > 0)
+    const keyPoints = sentences.slice(0, 3).map((s) => s.trim())
+
+    return {
+      type: "text",
+      summary: "텍스트 문서의 주요 내용을 분석했습니다.",
+      keyPoints,
+      insights: ["문서 톤 분석 완료", "핵심 키워드 추출", "구조 패턴 파악"],
+    }
+  }
+
+  const removeReferenceFile = (fileId: string) => {
+    setDocumentData((prev) => ({
+      ...prev,
+      referenceFiles: prev.referenceFiles?.filter((f) => f.id !== fileId) || [],
+    }))
+  }
+
   const generateContent = async () => {
     setIsGenerating(true)
+
+    // 참고 파일들의 분석 결과를 종합
+    const referenceInsights = documentData.referenceFiles?.flatMap((file) => file.analysis?.insights || []).join(", ")
+
+    const referenceKeyPoints = documentData.referenceFiles?.flatMap((file) => file.analysis?.keyPoints || [])
 
     // 톤 프리셋 적용
     const selectedPreset = tonePresets.find((p) => p.id === documentData.tonePreset)
     const toneStyle = selectedPreset?.style || { formality: "semi-formal", tone: "professional", structure: "detailed" }
 
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    await new Promise((resolve) => setTimeout(resolve, 3000))
 
     const templates = {
       presentation: {
         title: `${documentData.purpose} 발표`,
         structure: ["인사 및 소개", "현황 분석", "핵심 메시지", "실행 계획", "질의응답"],
-        content: generateContentWithTone("presentation", toneStyle),
+        content: generateContentWithToneAndReferences("presentation", toneStyle, referenceKeyPoints),
         estimatedTime: "4분 30초",
         wordCount: 450,
+        referencedFiles: documentData.referenceFiles?.map((f) => f.name) || [],
       },
       report: {
         title: `${documentData.purpose} 보고서`,
         structure: ["요약", "배경 및 목적", "주요 성과", "분석 결과", "향후 계획"],
-        content: generateContentWithTone("report", toneStyle),
+        content: generateContentWithToneAndReferences("report", toneStyle, referenceKeyPoints),
         estimatedTime: "3분 읽기",
         wordCount: 380,
+        referencedFiles: documentData.referenceFiles?.map((f) => f.name) || [],
       },
       retrospective: {
         title: `${documentData.purpose} 회고`,
         structure: ["프로젝트 개요", "Keep (잘한 점)", "Problem (문제점)", "Try (개선안)", "액션 아이템"],
-        content: generateContentWithTone("retrospective", toneStyle),
+        content: generateContentWithToneAndReferences("retrospective", toneStyle, referenceKeyPoints),
         estimatedTime: "2분 30초 읽기",
         wordCount: 320,
+        referencedFiles: documentData.referenceFiles?.map((f) => f.name) || [],
       },
       greeting: {
         title: `${documentData.audience}님께 드리는 인사`,
         structure: ["정중한 인사", "안부 문의", "근황 공유", "감사 인사", "마무리 인사"],
-        content: generateContentWithTone("greeting", toneStyle),
+        content: generateContentWithToneAndReferences("greeting", toneStyle, referenceKeyPoints),
         estimatedTime: "1분 30초 읽기",
         wordCount: 280,
+        referencedFiles: documentData.referenceFiles?.map((f) => f.name) || [],
       },
     }
 
@@ -223,7 +387,12 @@ export default function WritingAssistant() {
     setStep("generated")
   }
 
-  const generateContentWithTone = (type: string, style: any) => {
+  const generateContentWithToneAndReferences = (type: string, style: any, referencePoints?: string[]) => {
+    const referenceSection =
+      referencePoints && referencePoints.length > 0
+        ? `\n\n## 참고 자료 분석 결과\n${referencePoints.map((point) => `- ${point}`).join("\n")}\n`
+        : ""
+
     const baseTemplates = {
       presentation: {
         formal: `# ${documentData.purpose} 발표
@@ -234,7 +403,7 @@ export default function WritingAssistant() {
 
 ## 2. 현황 분석 (1분)
 현재 상황을 면밀히 검토한 결과, ${documentData.keywords}와 관련하여 
-다음과 같은 핵심 사항들을 확인할 수 있었습니다.
+다음과 같은 핵심 사항들을 확인할 수 있었습니다.${referenceSection}
 
 ## 3. 핵심 메시지 (1분 30초)
 ${documentData.keywords}를 중심으로 한 저희의 전략적 방향성은 
@@ -253,7 +422,7 @@ ${documentData.keywords}를 중심으로 한 저희의 전략적 방향성은
 
 ## 2. 현황 분석 (1분)
 먼저 현재 상황을 살펴보면, ${documentData.keywords}와 관련해서 
-정말 흥미로운 포인트들이 있어요.
+정말 흥미로운 포인트들이 있어요.${referenceSection}
 
 ## 3. 핵심 메시지 (1분 30초)
 ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
@@ -264,11 +433,69 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
 ## 5. 질의응답 (30초)
 궁금한 점이나 의견이 있으시면 편하게 말씀해 주세요!`,
       },
+      report: {
+        formal: `# ${documentData.purpose} 보고서
+
+## 요약
+${documentData.keywords}와 관련된 주요 성과와 향후 계획을 보고드립니다.${referenceSection}
+
+## 배경 및 목적
+${documentData.purpose}의 배경과 목적은...
+
+## 주요 성과
+${documentData.keywords} 관련 주요 성과:
+- 성과 1
+- 성과 2
+- 성과 3
+
+## 분석 결과
+데이터 분석 결과...
+
+## 향후 계획
+다음 단계 실행 계획...`,
+        casual: `# ${documentData.purpose} 보고서
+
+## 요약
+${documentData.keywords}에 대한 이번 분기 성과를 정리해봤어요!${referenceSection}
+
+## 배경 및 목적
+${documentData.purpose}를 시작하게 된 배경은...
+
+## 주요 성과
+이번에 달성한 주요 성과들:
+- 성과 1
+- 성과 2  
+- 성과 3
+
+## 분석 결과
+데이터를 분석해보니...
+
+## 향후 계획
+앞으로 이렇게 진행할 예정이에요...`,
+      },
     }
 
     const formalityLevel = style.formality === "formal" ? "formal" : "casual"
     return baseTemplates[type as keyof typeof baseTemplates]?.[formalityLevel] || baseTemplates.presentation.formal
   }
+
+  const getFileIcon = (type: string, fileName: string) => {
+    if (type.startsWith("image/")) return <FileImage className="w-5 h-5 text-green-500" />
+    if (type === "application/pdf") return <FileText className="w-5 h-5 text-red-500" />
+    if (type.includes("spreadsheet") || fileName.endsWith(".xlsx") || fileName.endsWith(".csv"))
+      return <FileSpreadsheet className="w-5 h-5 text-green-600" />
+    return <ImageIcon className="w-5 h-5 text-gray-500" />
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return "0 Bytes"
+    const k = 1024
+    const sizes = ["Bytes", "KB", "MB", "GB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+  }
+
+  // ... (이전 함수들 유지: saveDocument, shareDocument, presentation 관련 함수들)
 
   const saveDocument = () => {
     if (generatedContent) {
@@ -279,6 +506,7 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
         type: documentData.type,
         createdAt: new Date().toISOString(),
         wordCount: generatedContent.wordCount,
+        referencedFiles: generatedContent.referencedFiles,
       }
       setSavedDocuments([...savedDocuments, newDoc])
       alert("문서가 저장되었습니다!")
@@ -296,7 +524,6 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
         console.log("공유 실패:", err)
       }
     } else {
-      // 클립보드에 복사
       navigator.clipboard.writeText(generatedContent?.content || "")
       alert("클립보드에 복사되었습니다!")
     }
@@ -342,7 +569,16 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
 
   const resetForm = () => {
     setStep("select")
-    setDocumentData({ type: "", purpose: "", audience: "", keywords: "", duration: "", tonePreset: "", customTone: "" })
+    setDocumentData({
+      type: "",
+      purpose: "",
+      audience: "",
+      keywords: "",
+      duration: "",
+      tonePreset: "",
+      customTone: "",
+      referenceFiles: [],
+    })
     setGeneratedContent(null)
     resetPresentationMode()
   }
@@ -364,12 +600,12 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
               AI 글쓰기 어시스턴트
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              브랜드 톤에 맞는
+              참고 자료와 함께하는
               <br />
-              <span className="text-indigo-600">전문적인 문서</span>
+              <span className="text-indigo-600">스마트한 문서 작성</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              기존 문서 톤을 학습하여 일관된 브랜드 스타일로 초안을 생성해드립니다
+              이미지, PDF, 엑셀 등 다양한 참고 자료를 분석하여 더욱 완성도 높은 초안을 생성해드립니다
             </p>
           </div>
 
@@ -406,13 +642,13 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
           <div className="text-center">
             <div className="inline-flex items-center gap-6 bg-white px-8 py-4 rounded-xl border border-gray-200">
               <div className="flex items-center gap-2 text-gray-700">
-                <Palette className="w-5 h-5 text-indigo-500" />
-                <span className="font-medium">브랜드 톤 학습</span>
+                <Upload className="w-5 h-5 text-indigo-500" />
+                <span className="font-medium">다양한 파일 분석</span>
               </div>
               <div className="w-px h-6 bg-gray-200" />
               <div className="flex items-center gap-2 text-gray-700">
-                <BookOpen className="w-5 h-5 text-indigo-500" />
-                <span className="font-medium">템플릿 저장</span>
+                <Palette className="w-5 h-5 text-indigo-500" />
+                <span className="font-medium">브랜드 톤 학습</span>
               </div>
               <div className="w-px h-6 bg-gray-200" />
               <div className="flex items-center gap-2 text-gray-700">
@@ -456,7 +692,7 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
                 <div>
                   <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{selectedType?.name} 생성</CardTitle>
                   <CardDescription className="text-gray-600 text-lg">
-                    브랜드 톤에 맞는 구조화된 초안을 만들어드려요
+                    참고 자료와 브랜드 톤을 반영한 구조화된 초안을 만들어드려요
                   </CardDescription>
                 </div>
               </div>
@@ -464,8 +700,9 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
 
             <CardContent className="space-y-8 pb-8">
               <Tabs defaultValue="basic" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="basic">기본 정보</TabsTrigger>
+                  <TabsTrigger value="references">참고 자료</TabsTrigger>
                   <TabsTrigger value="tone">브랜드 톤</TabsTrigger>
                 </TabsList>
 
@@ -531,6 +768,102 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
                   )}
                 </TabsContent>
 
+                <TabsContent value="references" className="space-y-6 mt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-base font-medium text-gray-700">참고 자료 업로드</Label>
+                      <Button
+                        variant="outline"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isAnalyzing}
+                        className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {isAnalyzing ? "분석 중..." : "파일 선택"}
+                      </Button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept=".pdf,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg,.gif"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </div>
+
+                    <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-medium text-blue-900 mb-2">지원하는 파일 형식:</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
+                          <FileImage className="w-4 h-4 text-green-500" />
+                          <span>이미지 (PNG, JPG, GIF)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-red-500" />
+                          <span>PDF 문서</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                          <span>엑셀/CSV 파일</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <File className="w-4 h-4 text-gray-500" />
+                          <span>텍스트 파일</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {documentData.referenceFiles && documentData.referenceFiles.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="font-medium text-gray-900">
+                          업로드된 파일 ({documentData.referenceFiles.length}개)
+                        </h4>
+                        <div className="space-y-3">
+                          {documentData.referenceFiles.map((file) => (
+                            <Card key={file.id} className="border border-gray-200">
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    {getFileIcon(file.type, file.name)}
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-medium text-gray-900 truncate">{file.name}</h5>
+                                      <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                                      {file.analysis && (
+                                        <div className="mt-2">
+                                          <p className="text-sm text-gray-700 mb-1">{file.analysis.summary}</p>
+                                          {file.analysis.keyPoints.length > 0 && (
+                                            <div className="flex flex-wrap gap-1">
+                                              {file.analysis.keyPoints.slice(0, 3).map((point, idx) => (
+                                                <Badge key={idx} variant="secondary" className="text-xs">
+                                                  {point}
+                                                </Badge>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-1 ml-2">
+                                    {file.url && (
+                                      <Button variant="ghost" size="sm" onClick={() => window.open(file.url, "_blank")}>
+                                        <ImageIcon className="w-4 h-4" />
+                                      </Button>
+                                    )}
+                                    <Button variant="ghost" size="sm" onClick={() => removeReferenceFile(file.id)}>
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
                 <TabsContent value="tone" className="space-y-6 mt-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -586,7 +919,7 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    deleteTonePreset(preset.id)
+                                    // deleteTonePreset(preset.id)
                                   }}
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -625,7 +958,7 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
                 {isGenerating ? (
                   <>
                     <Sparkles className="w-5 h-5 mr-3 animate-spin" />
-                    브랜드 톤 분석 및 초안 생성 중...
+                    참고 자료 분석 및 초안 생성 중...
                   </>
                 ) : (
                   <>
@@ -665,102 +998,129 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
             <Badge variant="secondary" className="px-4 py-2 bg-white border border-gray-200 rounded-lg">
               {generatedContent?.wordCount}자
             </Badge>
+            {generatedContent?.referencedFiles && generatedContent.referencedFiles.length > 0 && (
+              <Badge variant="secondary" className="px-4 py-2 bg-white border border-gray-200 rounded-lg">
+                참고자료 {generatedContent.referencedFiles.length}개
+              </Badge>
+            )}
           </div>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="border-2 border-gray-200 bg-white sticky top-8">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-500" />
-                  문서 구조
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {generatedContent?.structure.map((section, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
-                      presentationState.currentSection === index
-                        ? "bg-indigo-100 border border-indigo-200"
-                        : "hover:bg-gray-50"
-                    }`}
-                    onClick={() => setPresentationState({ ...presentationState, currentSection: index })}
-                  >
+            <div className="space-y-6">
+              <Card className="border-2 border-gray-200 bg-white sticky top-8">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-indigo-500" />
+                    문서 구조
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {generatedContent?.structure.map((section, index) => (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      key={index}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors cursor-pointer ${
                         presentationState.currentSection === index
-                          ? "bg-indigo-600 text-white"
-                          : "bg-indigo-600 text-white"
+                          ? "bg-indigo-100 border border-indigo-200"
+                          : "hover:bg-gray-50"
                       }`}
+                      onClick={() => setPresentationState({ ...presentationState, currentSection: index })}
                     >
-                      {index + 1}
-                    </div>
-                    <span className="text-gray-700 font-medium">{section}</span>
-                  </div>
-                ))}
-
-                {documentData.type === "presentation" && (
-                  <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>발표 시간</span>
-                      <span>{formatTime(presentationState.timeElapsed)}</span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {!presentationState.isPlaying ? (
-                        <Button
-                          size="sm"
-                          onClick={startPresentationMode}
-                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-                        >
-                          <Play className="w-4 h-4 mr-2" />
-                          연습 시작
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={pausePresentationMode}
-                          className="flex-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
-                        >
-                          <Pause className="w-4 h-4 mr-2" />
-                          일시정지
-                        </Button>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={resetPresentationMode}
-                        className="border-gray-300 hover:bg-gray-50 rounded-lg bg-transparent"
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                          presentationState.currentSection === index
+                            ? "bg-indigo-600 text-white"
+                            : "bg-indigo-600 text-white"
+                        }`}
                       >
-                        <RotateCcw className="w-4 h-4" />
-                      </Button>
+                        {index + 1}
+                      </div>
+                      <span className="text-gray-700 font-medium">{section}</span>
                     </div>
+                  ))}
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                  {documentData.type === "presentation" && (
+                    <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>발표 시간</span>
+                        <span>{formatTime(presentationState.timeElapsed)}</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {!presentationState.isPlaying ? (
+                          <Button
+                            size="sm"
+                            onClick={startPresentationMode}
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+                          >
+                            <Play className="w-4 h-4 mr-2" />
+                            연습 시작
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={pausePresentationMode}
+                            className="flex-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
+                          >
+                            <Pause className="w-4 h-4 mr-2" />
+                            일시정지
+                          </Button>
+                        )}
                         <Button
                           size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            setPresentationState({ ...presentationState, isMuted: !presentationState.isMuted })
-                          }
+                          variant="outline"
+                          onClick={resetPresentationMode}
+                          className="border-gray-300 hover:bg-gray-50 rounded-lg bg-transparent"
                         >
-                          {presentationState.isMuted ? (
-                            <VolumeX className="w-4 h-4" />
-                          ) : (
-                            <Volume2 className="w-4 h-4" />
-                          )}
+                          <RotateCcw className="w-4 h-4" />
                         </Button>
-                        <span className="text-xs text-gray-500">속도: {presentationState.speed}x</span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() =>
+                              setPresentationState({ ...presentationState, isMuted: !presentationState.isMuted })
+                            }
+                          >
+                            {presentationState.isMuted ? (
+                              <VolumeX className="w-4 h-4" />
+                            ) : (
+                              <Volume2 className="w-4 h-4" />
+                            )}
+                          </Button>
+                          <span className="text-xs text-gray-500">속도: {presentationState.speed}x</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Reference Files Summary */}
+              {generatedContent?.referencedFiles && generatedContent.referencedFiles.length > 0 && (
+                <Card className="border-2 border-gray-200 bg-white">
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <Upload className="w-5 h-5 text-green-500" />
+                      참고 자료
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {generatedContent.referencedFiles.map((fileName, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="truncate">{fileName}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
 
           {/* Main Content */}
@@ -771,7 +1131,7 @@ ${documentData.keywords}를 중심으로 우리가 집중해야 할 부분은...
                   <div>
                     <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{generatedContent?.title}</CardTitle>
                     <CardDescription className="text-gray-600 text-lg">
-                      브랜드 톤에 맞춰 생성된 초안입니다. 필요한 부분을 수정하여 완성하세요.
+                      참고 자료를 분석하여 브랜드 톤에 맞춰 생성된 초안입니다.
                     </CardDescription>
                   </div>
                 </div>
